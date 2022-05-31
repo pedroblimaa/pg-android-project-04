@@ -2,6 +2,7 @@ package com.example.androidproject04
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -12,6 +13,8 @@ import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 
 class MainActivity : AppCompatActivity() {
     private val signInLauncher =
@@ -26,6 +29,9 @@ class MainActivity : AppCompatActivity() {
         if (user != null) {
             val name = user.displayName
             val email = user.email
+
+            setFirebaseRemoteConfig()
+
             setContentView(R.layout.activity_main)
         } else {
             val providers = arrayListOf(AuthUI.IdpConfig.GoogleBuilder().build())
@@ -35,6 +41,27 @@ class MainActivity : AppCompatActivity() {
                 .build()
             signInLauncher.launch(signInIntent)
         }
+    }
+
+    private fun setFirebaseRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 60
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        val defaultConfigMap: MutableMap<String, Any> = HashMap()
+        defaultConfigMap["delete_detail_view"] = true
+        defaultConfigMap["delete_list_view"] = false
+        remoteConfig.setDefaultsAsync(defaultConfigMap)
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val updated = task.result
+                    Log.d("MainActivity", "Remote config updated: $updated")
+                } else {
+                    Log.d("MainActivity", "Failed to load remote config")
+                }
+            }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -61,6 +88,9 @@ class MainActivity : AppCompatActivity() {
         val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
             val user = FirebaseAuth.getInstance().currentUser
+
+            setFirebaseRemoteConfig()
+
             setContentView(R.layout.activity_main)
         } else {
             Toast.makeText(this, "Sign in failed", Toast.LENGTH_SHORT).show()

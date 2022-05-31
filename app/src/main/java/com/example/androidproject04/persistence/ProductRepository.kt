@@ -50,24 +50,25 @@ object ProductRepository {
                     Log.w(TAG, "Listen failed.", firebaseFirestoreException)
                     return@addSnapshotListener
                 }
+
+                val products = ArrayList<Product>()
                 if (querySnapshot != null && !querySnapshot.isEmpty) {
-                    val products = ArrayList<Product>()
                     querySnapshot.forEach {
                         val product = it.toObject<Product>()
                         product.id = it.id
                         products.add(product)
                     }
-                    liveProducts.postValue(products)
                 } else {
                     Log.d(TAG, "No product has been found")
                 }
+                liveProducts.postValue(products)
             }
         return liveProducts
     }
 
 
-    fun getProductByCode(code: String): MutableLiveData<Product> {
-        val liveProduct: MutableLiveData<Product> = MutableLiveData()
+    fun getProductByCode(code: String): MutableLiveData<Product?> {
+        val liveProduct: MutableLiveData<Product?> = MutableLiveData()
         firebaseFirestore.collection(COLLECTION)
             .whereEqualTo(FIELD_CODE, code)
             .whereEqualTo(FIELD_USER_ID, firebaseAuth.currentUser!!.uid)

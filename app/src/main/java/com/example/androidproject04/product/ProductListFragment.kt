@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.example.androidproject04.databinding.FragmentProductsListBinding
 import com.example.androidproject04.persistence.Product
+import com.google.firebase.analytics.FirebaseAnalytics
 
 private const val TAG = "ProductsListFragment"
 
@@ -42,14 +43,10 @@ class ProductListFragment : Fragment() {
             })
 
         binding.fab.setOnClickListener { view ->
+            val firebaseAnalytics = FirebaseAnalytics.getInstance(this.requireContext())
+            firebaseAnalytics.logEvent("new_item", null)
             this.findNavController()
                 .navigate(ProductListFragmentDirections.actionShowProductDetail(null))
-        }
-
-        binding.productsRefresh.setOnRefreshListener {
-            Log.i(TAG, "Refreshing products list")
-            productListViewModel.refreshProducts()
-            binding.productsRefresh.isRefreshing = false
         }
 
         return binding.root

@@ -1,5 +1,6 @@
 package com.example.androidproject04.product
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -7,14 +8,18 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.androidproject04.databinding.ItemProductBinding
 import com.example.androidproject04.persistence.Product
+import com.google.firebase.analytics.FirebaseAnalytics
 
 class ProductAdapter(private val onProductClickListener: ProductClickListener) :
     ListAdapter<Product, ProductAdapter.ProductViewHolder>(ProductDiff) {
+
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): ProductAdapter.ProductViewHolder {
+        firebaseAnalytics = FirebaseAnalytics.getInstance(parent.context)
         return ProductViewHolder(ItemProductBinding.inflate(LayoutInflater.from(parent.context)))
     }
 
@@ -22,7 +27,17 @@ class ProductAdapter(private val onProductClickListener: ProductClickListener) :
         val product = getItem(position)
         holder.bind(product)
         holder.itemView.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, product.code)
+            firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_ITEM, bundle)
             onProductClickListener.onClick(product)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, product.code)
+            firebaseAnalytics.logEvent("attempt_delete_product", bundle)
+            true
         }
     }
 

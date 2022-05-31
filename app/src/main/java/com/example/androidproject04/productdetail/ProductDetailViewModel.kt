@@ -7,14 +7,14 @@ import com.example.androidproject04.persistence.ProductRepository
 
 private const val TAG = "ProductDetailViewModel"
 
-class ProductDetailViewModel(code: String?): ViewModel() {
-    lateinit var product: MutableLiveData<Product>
+class ProductDetailViewModel(code: String?) : ViewModel() {
+    lateinit var product: MutableLiveData<Product?>
 
     init {
         if (code != null) {
             getProduct(code)
         } else {
-            product = MutableLiveData<Product>()
+            product = MutableLiveData<Product?>()
             product.value = Product()
         }
     }
@@ -23,10 +23,18 @@ class ProductDetailViewModel(code: String?): ViewModel() {
         product = ProductRepository.getProductByCode(productCode)
     }
 
+    fun deleteProduct() {
+        if (product.value?.id != null) {
+            ProductRepository.deleteProduct(product.value!!.id!!)
+            product.value = null
+        }
+    }
+
     override fun onCleared() {
         if (product.value != null
             && product.value!!.code != null
-            && product.value!!.code!!.isNotBlank()) {
+            && product.value!!.code!!.isNotBlank()
+        ) {
             ProductRepository.saveProduct(product.value!!)
         }
         super.onCleared()
